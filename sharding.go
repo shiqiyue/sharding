@@ -228,6 +228,12 @@ func (s *Sharding) registerCallbacks(db *gorm.DB) {
 }
 
 func (s *Sharding) switchConn(db *gorm.DB) {
+	if db.Statement.Table != "" {
+		_, exist := s.configs[db.Statement.Table]
+		if !exist {
+			return
+		}
+	}
 	s.ConnPool = &ConnPool{ConnPool: db.Statement.ConnPool, sharding: s}
 	db.Statement.ConnPool = s.ConnPool
 }
