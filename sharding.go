@@ -97,12 +97,11 @@ func (s *Sharding) compile() error {
 		if t, ok := table.(string); ok {
 			s.configs[t] = s._config
 		} else {
-			// stmt := &gorm.Statement{DB: s.DB}
-			stmt := s.DB.Statement
-			if err := stmt.Parse(table); err == nil {
-				s.configs[stmt.Table] = s._config
-			} else {
-				return err
+			tabler, ok := table.(schema.Tabler)
+			if ok {
+				tableName := tabler.TableName()
+				s.configs[tableName] = s._config
+
 			}
 		}
 	}
@@ -235,7 +234,7 @@ func (s *Sharding) switchConn(db *gorm.DB) {
 			return
 		}
 	}
-	if db.Statement.Model != "" {
+	if db.Statement.Model != nil {
 		tabler, ok := db.Statement.Model.(schema.Tabler)
 		if ok {
 			tableName := tabler.TableName()
