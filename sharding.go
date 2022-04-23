@@ -3,6 +3,7 @@ package sharding
 import (
 	"errors"
 	"fmt"
+	"gorm.io/gorm/schema"
 	"hash/crc32"
 	"strconv"
 	"strings"
@@ -234,6 +235,17 @@ func (s *Sharding) switchConn(db *gorm.DB) {
 			return
 		}
 	}
+	if db.Statement.Model != "" {
+		tabler, ok := db.Statement.Model.(schema.Tabler)
+		if ok {
+			tableName := tabler.TableName()
+			_, exist := s.configs[tableName]
+			if !exist {
+				return
+			}
+		}
+	}
+
 	s.ConnPool = &ConnPool{ConnPool: db.Statement.ConnPool, sharding: s}
 	db.Statement.ConnPool = s.ConnPool
 }
